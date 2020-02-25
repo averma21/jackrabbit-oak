@@ -186,7 +186,7 @@ public abstract class FulltextDocumentMaker<D> implements DocumentMaker<D> {
             return null;
         }
 
-        if (indexingRule.isFulltextEnabled()) {
+        if (indexingRule.isFulltextEnabled() && definition.getDefinitionNodeState().getProperty("pathOnly") == null) {
             indexFulltextValue(document, name);
         }
 
@@ -242,7 +242,9 @@ public abstract class FulltextDocumentMaker<D> implements DocumentMaker<D> {
 
             if (pd.fulltextEnabled() && includeTypeForFullText) {
                 for (String value : property.getValue(Type.STRINGS)) {
-
+                    if (definition.getDefinitionNodeState().getProperty("pathOnly") != null && !value.contains("/")) {
+                        continue;
+                    }
                     logLargeStringProperties(property.getName(), value);
                     if (!includePropertyValue(value, pd)){
                         continue;

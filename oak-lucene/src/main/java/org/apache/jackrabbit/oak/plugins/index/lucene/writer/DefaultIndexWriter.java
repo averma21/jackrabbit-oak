@@ -34,6 +34,7 @@ import org.apache.jackrabbit.oak.plugins.index.search.IndexDefinition;
 import org.apache.jackrabbit.oak.spi.state.NodeBuilder;
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexCommit;
 import org.apache.lucene.index.IndexWriter;
@@ -80,10 +81,22 @@ class DefaultIndexWriter implements LuceneIndexWriter {
 
     @Override
     public void updateDocument(String path, Iterable<? extends IndexableField> doc) throws IOException {
+        boolean containsOnlyPath = false;
+        if (doc instanceof Document) {
+            Document luceneDoc = (Document) doc;
+            containsOnlyPath = luceneDoc.getFields().size() == 1 && luceneDoc.getField(":path") != null;
+        }
         if (reindex) {
+            if (containsOnlyPath) {
+                return;
+            }
             getWriter().addDocument(doc);
         } else {
-            getWriter().updateDocument(newPathTerm(path), doc);
+            if (containsOnlyPath) {
+                getWriter().deleteDocuments(newPathTerm(path));
+            } else {
+                getWriter().updateDocument(newPathTerm(path), doc);
+            }
         }
         indexUpdated = true;
     }
