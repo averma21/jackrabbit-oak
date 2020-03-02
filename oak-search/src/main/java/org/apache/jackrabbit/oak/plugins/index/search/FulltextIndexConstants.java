@@ -151,6 +151,18 @@ public interface FulltextIndexConstants {
 
     String EVALUATE_PATH_RESTRICTION = "evaluatePathRestrictions";
 
+  /**
+   * Boolean property in property definition which, if true, indicates that only those properties should be indexed
+   * which contain a path.
+   */
+  String INDEX_ONLY_REFERENCES = "indexOnlyReferences";
+
+  /**
+   * This regex in property definition would be used to identify if a property contains a path to decide whether to
+   * index it or not when {@link #INDEX_ONLY_REFERENCES} is <code>true</code>
+   */
+  String PATH_REGEX = "pathRegex";
+
     /**
      * Experimental config to restrict which property type gets indexed at
      * property definition level. Mostly index rule level #INCLUDE_PROPERTY_TYPES

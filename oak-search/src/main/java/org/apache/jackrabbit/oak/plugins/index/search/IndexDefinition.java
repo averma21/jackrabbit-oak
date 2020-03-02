@@ -261,6 +261,10 @@ public class IndexDefinition implements Aggregate.AggregateMapper {
 
     private final boolean testMode;
 
+    private final boolean indexOnlyReferences;
+
+    private final String pathRegex;
+
     public boolean isTestMode() {
         return testMode;
     }
@@ -371,7 +375,8 @@ public class IndexDefinition implements Aggregate.AggregateMapper {
 
             this.fullTextEnabled = hasFulltextEnabledIndexRule(definedIndexRules);
             this.evaluatePathRestrictions = getOptionalValue(defn, EVALUATE_PATH_RESTRICTION, false);
-
+            this.indexOnlyReferences = getOptionalValue(defn, INDEX_ONLY_REFERENCES, false);
+            this.pathRegex = getOptionalValue(defn, PATH_REGEX, "([\"']|^)/");
             String functionName = getOptionalValue(defn, FulltextIndexConstants.FUNC_NAME, null);
             if (fullTextEnabled && functionName == null) {
                 functionName = getDefaultFunctionName();
@@ -842,6 +847,14 @@ public class IndexDefinition implements Aggregate.AggregateMapper {
             }
         }
         return false;
+    }
+
+    public boolean indexOnlyReferences() {
+        return indexOnlyReferences;
+    }
+
+    public Pattern getPathRegex() {
+        return Pattern.compile(pathRegex);
     }
 
     public boolean isSuggestEnabled() {
