@@ -83,16 +83,17 @@ class DefaultIndexWriter implements LuceneIndexWriter {
 
     @Override
     public void updateDocument(String path, Iterable<? extends IndexableField> doc) throws IOException {
-        boolean containsOnlyPath = false;
         Iterator<? extends IndexableField> f = doc.iterator();
         String fieldName = f.hasNext() ? f.next().name() : null;
-        containsOnlyPath = FieldNames.PATH.equals(fieldName) && !f.hasNext();
+        boolean containsOnlyPath = FieldNames.PATH.equals(fieldName) && !f.hasNext();
         if (reindex) {
             if (containsOnlyPath) {
                 return;
             }
             getWriter().addDocument(doc);
         } else {
+            // if the new document only contains path field, we don't add it to index. Instead we delete existing
+            // document of the same path.
             if (containsOnlyPath) {
                 getWriter().deleteDocuments(newPathTerm(path));
             } else {

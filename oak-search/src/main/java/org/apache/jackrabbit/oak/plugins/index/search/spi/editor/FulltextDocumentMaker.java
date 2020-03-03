@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import javax.jcr.PropertyType;
 
@@ -128,6 +129,7 @@ public abstract class FulltextDocumentMaker<D> implements DocumentMaker<D> {
 
         D document = initDoc();
         boolean dirty = false;
+        Pattern propertyRegex = definition.getPropertyRegex();
 
         //We 'intentionally' are indexing node names only on root state as we don't support indexing relative or
         //regex for node name indexing
@@ -186,8 +188,11 @@ public abstract class FulltextDocumentMaker<D> implements DocumentMaker<D> {
             return null;
         }
 
-        if (indexingRule.isFulltextEnabled() && !definition.indexOnlyReferences()) {
-            indexFulltextValue(document, name);
+        if (indexingRule.isFulltextEnabled()) {
+            boolean shouldAdd = propertyRegex == null || propertyRegex.matcher(name).find();
+            if (shouldAdd) {
+                indexFulltextValue(document, name);
+            }
         }
 
         if (definition.evaluatePathRestrictions()){
@@ -242,10 +247,10 @@ public abstract class FulltextDocumentMaker<D> implements DocumentMaker<D> {
 
             if (pd.fulltextEnabled() && includeTypeForFullText) {
                 for (String value : property.getValue(Type.STRINGS)) {
-                    if (definition.indexOnlyReferences() && !definition.getPathRegex().matcher(value).find()) {
+                    logLargeStringProperties(property.getName(), value);
+                    if (definition.getPropertyRegex() != null && !definition.getPropertyRegex().matcher(value).find()) {
                         continue;
                     }
-                    logLargeStringProperties(property.getName(), value);
                     if (!includePropertyValue(value, pd)){
                         continue;
                     }
